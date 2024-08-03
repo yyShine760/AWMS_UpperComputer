@@ -1,31 +1,27 @@
 #include "inc/widget.h"
 
-
-inline void Widget::updataTable() {
+inline void Widget::updateTable() {
     // 从json文件读出key值数据写入表格的装备编号
     if (JsonUtil::getInstance().isJsonFileExist()) {
         auto keys = JsonUtil::getInstance().getJsonKeys();
+        auto values = JsonUtil::getInstance().getJsonValues();
+
         ui->tableWidget->setRowCount(keys.size()); // 动态设置行数
 
-        // 打印编号列
-        int row = 0;
-        for (const auto &key : keys) {
-            QTableWidgetItem *item = new QTableWidgetItem(key);
-            item->setTextAlignment(Qt::AlignCenter); // 设置文本居中对齐
-            ui->tableWidget->setItem(row, 0, item); // 将 key 值写入装备编号列
-            ++row;
-        }
+        for (int row = 0; row < keys.size(); ++row) {
+            // 打印编号列
+            QTableWidgetItem *tableWidgetItem = new QTableWidgetItem(keys[row]);
+            tableWidgetItem->setTextAlignment(
+                Qt::AlignCenter); // 设置文本居中对齐
+            ui->tableWidget->setItem(
+                row, 0, tableWidgetItem); // 将 key 值写入装备编号列
 
-        // 打印员工姓名列
-        row = 0;
-        auto values = JsonUtil::getInstance().getJsonValues();
-        for (const auto &value : values) {
-            QTableWidgetItem *item = new QTableWidgetItem(value);
-            item->setTextAlignment(Qt::AlignCenter);
-            ui->tableWidget->setItem(row, 1, item);
-            ++row;
+            // 打印员工姓名列
+            tableWidgetItem = new QTableWidgetItem(values[row]);
+            tableWidgetItem->setTextAlignment(Qt::AlignCenter);
+            ui->tableWidget->setItem(row, 1, tableWidgetItem);
         }
-    } else { 
+    } else {
         // 如果不存在则创建
         JsonUtil::getInstance().createJsonFile();
     }
@@ -43,8 +39,12 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
     // 设置表格的列宽自适应
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(
         QHeaderView::Stretch);
-
-    updataTable();
+    // 禁止编辑
+    ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    // 禁止自动排序
+    ui->tableWidget->setSortingEnabled(false);
+    ui->tableWidget->horizontalHeader()->setSortIndicatorShown(false);
+    updateTable();
 }
 
 Widget::~Widget() {
@@ -65,33 +65,26 @@ void Widget::on_add_facility_clicked() {
         JsonUtil::getInstance().createJsonFile();
     }
 
-    QInputDialog inputDialog{};
-    inputDialog.setFixedSize(INPUT_W, INPUT_H);
-    inputDialog.setWindowTitle("添加装备");
-    inputDialog.setLabelText("请输入装备编号");
+    QJsonObject jsonObject = JsonUtil::getInstance().getJsonObj();
+    // 清除输入中的空格和其他特殊符号
+    QString getUserInput =
+        QInputDialog::getText(this, "添加装备", "请输入装备编号").simplified();
+    getUserInput.remove(' ');
 
-    if (inputDialog.exec() == QDialog::Accepted) {
-        QJsonObject jsonObject = JsonUtil::getInstance().getJsonObj();
-        // 清除输入中的空格
-        QString getUserInput = inputDialog.textValue();
-        getUserInput.replace(removeWhitespace, "");
-
-        if (getUserInput == "") {
-            QMessageBox::warning(this, "警告", "输入为空");
-            return;
-        }
-        // 检测编号是否存在
-        if (jsonObject.contains(getUserInput)) {
-            QMessageBox::warning(this, "警告", "编号已存在");
-            return;
-        }
-
-        // 在JSON对象中插入一个新的键值对
-        jsonObject.insert(getUserInput, QJsonValue::Null);
-        JsonUtil::getInstance().rewriteJsonFile(jsonObject);
-         QMessageBox::information(this, "成功", "装备已成功添加");
-        updataTable();
+    if (getUserInput.isEmpty()) {
+        return;
     }
+    // 检测编号是否存在
+    if (jsonObject.contains(getUserInput)) {
+        QMessageBox::warning(this, "警告", "编号已存在");
+        return;
+    }
+
+    // 在JSON对象中插入一个新的键值对
+    jsonObject.insert(getUserInput, QJsonValue::Null);
+    JsonUtil::getInstance().rewriteJsonFile(jsonObject);
+    QMessageBox::information(this, "成功", "装备已成功添加");
+    updateTable();
 }
 
 /*
@@ -111,12 +104,20 @@ void Widget::on_bind_facility_clicked() {
     QJsonObject jsonObj = JsonUtil::getInstance().getJsonObj();
     // 获取装备编号和员工名字
     QString deviceNumber =
-        QInputDialog::getText(this, "绑定装备", "请输入装备编号:");
+        QInputDialog::getText(this, "绑定装备", "请输入装备编号:").simplified();
+    deviceNumber.remove(' ');
+
+    if (deviceNumber.isEmpty()) {
+        return;
+    }
     // 检查装备编号是否已存在
     if (jsonObj.contains(deviceNumber)) {
         QString employeeName =
-            QInputDialog::getText(this, "绑定装备", "请输入员工名字:");
-
+            QInputDialog::getText(this, "绑定装备", "请输入员工名字:").simplified();
+        employeeName.remove(' ');
+        if (employeeName.isEmpty()) {
+            return;
+        }
         // 装备编号已存在，检查员工名字是否为null
         if (jsonObj[deviceNumber].isNull()) {
             // 员工名字是null，可以直接将用户输入的员工名字设置为值
@@ -134,7 +135,7 @@ void Widget::on_bind_facility_clicked() {
     }
 
     JsonUtil::getInstance().rewriteJsonFile(jsonObj);
-    updataTable();
+    updateTable();
 
     // 显示绑定成功的信息
     QMessageBox::information(this, "成功", "装备已成功绑定");

@@ -27,7 +27,7 @@ public:
     ~Widget();
 
 private slots:
-    inline void updataTable();
+    inline void updateTable();
 
     void on_add_facility_clicked();
 
@@ -43,6 +43,5 @@ private slots:
 
 private:
     Ui::Widget *ui;
-    QRegularExpression removeWhitespace{"^\\s+|\\s+$"};
 };
 #endif // WIDGET_H
