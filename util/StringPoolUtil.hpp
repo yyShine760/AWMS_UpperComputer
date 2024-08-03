@@ -1,33 +1,40 @@
-// #ifndef StringPoolUtil_hpp
-// #define StringPoolUtil_hpp
+#ifndef StringPoolUtil_hpp
+#define StringPoolUtil_hpp
 
-// #include <map>
+#include <string_view>
+#include <unordered_map>
 
-// // 单例模式的字符串常量池
-// class StringPoolUtil
-// {
-// public:
-//     static StringPoolUtil* getInstance() {
-//         if (m_instance == nullptr) {
-//             m_instance = new StringPoolUtil();
-//         }
-//         return m_instance;
-//     }
-    
-//     const char* getString(const char* str) {
-//         return m_stringPool[str];
-//     }
-    
-// private:
-//     StringPoolUtil() {
-//         m_stringPool["设备管理文件路径"] = "./data/device.json";
-//         m_stringPool["警告"] = "警告";
+using std::unordered_map, std::string_view;
 
-//     }
-//     ~StringPoolUtil();
-    
-//     static StringPoolUtil* m_instance;
-//     std::map<const char*, const char*> m_stringPool;
-// };
+class StringPoolUtil {
+public:
+    static StringPoolUtil& getInstance() {
+        static StringPoolUtil instance;
+        return instance;
+    }
 
-// #endif
+    const string_view& get(const string_view &str) {
+        return _strPool[str];
+    }
+
+
+private:
+    StringPoolUtil() {
+        _strPool["装备编号"] = "装备编号";
+        _strPool["员工名字"] = "员工名字";
+        _strPool["安全帽状态"]  = "安全帽状态";
+        _strPool["安全带状态"] = "安全带状态";
+        _strPool["警告"] = "警告";
+        _strPool["请输入装备编号"] = "请输入装备编号";
+        _strPool["成功"] = "成功";
+    };
+    ~StringPoolUtil() = default;
+
+    StringPoolUtil(const StringPoolUtil &) = delete;
+    StringPoolUtil& operator=(const StringPoolUtil &) = delete;
+
+private:
+    unordered_map<string_view, string_view> _strPool;
+};
+
+#endif

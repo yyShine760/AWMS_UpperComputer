@@ -27,6 +27,8 @@ public:
     ~Widget();
 
 private slots:
+    inline void updataTable();
+
     void on_add_facility_clicked();
 
     void on_bind_facility_clicked();
