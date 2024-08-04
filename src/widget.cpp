@@ -2,6 +2,12 @@
 Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
     ui->setupUi(this);
 
+    // 绑定两个按钮为一个槽函数
+    connect(ui->pushButton_laststaff, &QPushButton::clicked, this,
+            &Widget::on_switchoverButton_clicked);
+    connect(ui->pushButton_nextstaff, &QPushButton::clicked, this,
+            &Widget::on_switchoverButton_clicked);
+
     // 设置表格的列数和字段名
     ui->tableWidget->setColumnCount(4);
     ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "装备编号"
@@ -235,32 +241,38 @@ void Widget::on_del_facility_clicked() {
 
 /*
     切换信息按钮
-    1. 打开json文件
-    2. 读取出一条信息
-    3. 关闭文件
-    4. 显示信息到界面
+    1. 切换表格行
 */
-void Widget::on_pushButton_laststaff_clicked() {
-    // QFile jsonFile(JSONPATH);
-    // if (!jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    //     qWarning("未能打开文件");
-    //     return;
-    // }
 
-    // QByteArray jsonData = jsonFile.readAll();
-    // QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+void Widget::on_switchoverButton_clicked() {
+    auto jsonObject = JsonUtil::getInstance().getJsonObject();
+    if (!JsonUtil::getInstance().isJsonFileExist() || jsonObject.isEmpty()) {
+        QMessageBox::warning(this, StringPoolUtil::getInstance().get(WARNING),
+                             StringPoolUtil::getInstance().get(NOFACILITY));
+        return;
+    }
 
-    // if (jsonDoc.isNull() || !jsonDoc.isObject()) {
-    //     qWarning("JSON 文档无效");
-    //     return;
-    // }
-    // QJsonObject jsonObject = jsonDoc.object();
-
-    // jsonObject
+    // 切换表格
+    static int row = -1;
+    // 判断是哪个按钮进入槽函数
+    auto objButton = qobject_cast<QPushButton *>(sender());
+    if (objButton == ui->pushButton_laststaff) {
+        if (row <= 0) {
+            row = ui->tableWidget->rowCount() - 1;
+        } else {
+            row--;
+        }
+    } else {
+        if (row == ui->tableWidget->rowCount() - 1) {
+            row = 0;
+        } else {
+            row++;
+        }
+    }
+    ui->tableWidget->selectRow(row);
 }
 
-void Widget::on_pushButton_nextstaff_clicked() {
-}
+
 
 void Widget::on_searchButton_clicked() {
     QString str = ui->lineEdit->text().simplified();

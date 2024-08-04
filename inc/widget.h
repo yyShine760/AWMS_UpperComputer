@@ -60,9 +60,7 @@ private slots:
 
     void on_del_facility_clicked();
 
-    void on_pushButton_laststaff_clicked();
-
-    void on_pushButton_nextstaff_clicked();
+    void on_switchoverButton_clicked();
 
     void on_searchButton_clicked();
 
