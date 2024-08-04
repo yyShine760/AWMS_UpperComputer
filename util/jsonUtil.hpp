@@ -40,7 +40,7 @@ public:
         }
     }
 
-    QJsonObject getJsonObj() {
+    QJsonObject getJsonObject() {
         if (!_isJsonObjCached) {
             if (!isJsonFileExist()) {
                 createJsonFile();
@@ -77,13 +77,13 @@ public:
     }
 
     QStringList getJsonKeys() {
-        return getJsonObj().keys();
+        return getJsonObject().keys();
     }
 
     QStringList getJsonValues() {
         QStringList values;
         for (const auto &key : getJsonKeys()) {
-            values.append(getJsonObj().value(key).toString());
+            values.append(getJsonObject().value(key).toString());
         }
         return values;
     }

@@ -2,9 +2,13 @@
 #define StringPoolUtil_hpp
 
 #include <QString>
-#include <unordered_map>
+#include <QHash>
 
-using std::unordered_map, std::string_view;
+inline const QString WARNING = "警告";
+inline const QString SUCCEED = "成功";
+inline const QString NOFACILITY = "暂无装备被添加";
+inline const QString NONUMBER = "装备编号不存在";
+inline const QString INPUTFACILITY = "请输入装备编号：";
 
 class StringPoolUtil {
 public:
@@ -17,10 +21,10 @@ public:
     const QString& get(const QString &str) {
         auto it = _strPool.find(str);
         if (it != _strPool.end()) {
-            return it->second;
+            return it.value();
         } else {
-            _strPool.insert({str, str});
-            return str;
+            _strPool.emplace(str, str);
+            return _strPool[str];
         }
     }
 
@@ -32,7 +36,7 @@ private:
     StringPoolUtil& operator=(const StringPoolUtil &) = delete;
 
 private:
-    unordered_map<QString, QString> _strPool;
+    QHash<QString, QString> _strPool;
 };
 
 #endif

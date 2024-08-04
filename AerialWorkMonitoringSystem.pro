@@ -17,8 +17,6 @@ SOURCES += \
 
 HEADERS += \
     inc/widget.h \
-    util/CircularQueue.hpp \
-    util/CircularQueue.hpp \
     util/StringPoolUtil.hpp \
     util/jsonUtil.hpp \
     util/jsonUtil.hpp
@@ -30,3 +28,6 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    res.qrc
