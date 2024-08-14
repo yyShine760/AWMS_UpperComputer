@@ -9,3 +9,5 @@
 
 ### 项目总结
 该项目通过Qt实现了一个实用的装备管理系统，利用JSON文件进行数据持久化，简化了装备信息的管理流程。通过统一的字符串管理和清晰的项目结构，项目具备良好的扩展性和维护性，适用于小型装备管理场景。
+
+[流程图]("C:\Users\yaoya\Desktop\ElevatedWorkSafetyMonitoringSystem\EWSMS_UpperComputer\总框架流程.jpg")
