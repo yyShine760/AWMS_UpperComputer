@@ -1,5 +1,8 @@
 #include "inc/widget.h"
-Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
+
+
+Widget::Widget(QWidget *parent)
+    : QWidget(parent), ui(new Ui::Widget), lowerComputer(new LowerComputer), thread(new QThread) {
     ui->setupUi(this);
 
     // 绑定两个按钮为一个槽函数
@@ -15,20 +18,70 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
                                                              << "安全帽状态"
                                                              << "安全带状态");
     // 设置表格的列宽自适应
-    ui->tableWidget->horizontalHeader()->setSectionResizeMode(
-        QHeaderView::Stretch);
+    ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     // 禁止编辑
     ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     // 禁止自动排序
     ui->tableWidget->setSortingEnabled(false);
     ui->tableWidget->horizontalHeader()->setSortIndicatorShown(false);
+
+    // 创建线程对象
+
+    lowerComputer->moveToThread(thread);
+    thread->start();
     updateTable();
+
+    connect(lowerComputer, &LowerComputer::sendMsgToUI, this, &Widget::updateTable);
 }
 
 Widget::~Widget() {
     delete ui;
 }
 
+void Widget::updateTable() {
+    // 从json文件读出key值数据写入表格的装备编号
+    if (JsonUtil::getInstance().isJsonFileExist()) {
+        auto keys = JsonUtil::getInstance().getJsonKeys();
+        auto values = JsonUtil::getInstance().getJsonValues();
+
+        ui->tableWidget->setRowCount(keys.size()); // 动态设置行数
+
+        for (int row = 0; row < keys.size(); ++row) {
+            // 打印编号列
+            auto tableWidgetItem = new QTableWidgetItem(keys[row]);
+            tableWidgetItem->setTextAlignment(Qt::AlignCenter); // 设置文本居中对齐
+            ui->tableWidget->setItem(row, 0, tableWidgetItem);  // 将 key 值写入装备编号列
+
+            // 打印员工姓名列
+            tableWidgetItem = new QTableWidgetItem(values[row]);
+            tableWidgetItem->setTextAlignment(Qt::AlignCenter);
+            ui->tableWidget->setItem(row, 1, tableWidgetItem);
+
+            // 读取下位机装备的状态更新至UI表格
+            switch (lowerComputer->getLowerComputerMsg()) {
+            case EquipmentStatus::Offline:
+                // 为第三第四列全部设置为灰色且打印离线
+                for (int row = 0; row < keys.size(); ++row) {
+                    tableWidgetItem = new QTableWidgetItem("离线");
+                    tableWidgetItem->setTextAlignment(Qt::AlignCenter);
+                    tableWidgetItem->setBackground(Qt::gray);
+                    ui->tableWidget->setItem(row, 2, tableWidgetItem);
+                    tableWidgetItem = new QTableWidgetItem("离线");
+                    tableWidgetItem->setTextAlignment(Qt::AlignCenter);
+                    tableWidgetItem->setBackground(Qt::gray);
+                    ui->tableWidget->setItem(row, 3, tableWidgetItem);
+                }
+                break;
+
+            default:
+                break;
+            }
+        }
+    } else {
+        // 如果不存在则创建
+        JsonUtil::getInstance().createJsonFile();
+    }
+}
 /*
     添加装备按钮的槽函数
     · 弹出输入对话框，获取输入的装备编号

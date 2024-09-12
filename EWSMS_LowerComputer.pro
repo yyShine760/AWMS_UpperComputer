@@ -12,10 +12,12 @@ TARGET = ../../EWSMS_LowerComputer
 DESTDIR = ./
 
 SOURCES += \
+    src/listen.cpp \
     src/main.cpp \
     src/widget.cpp
 
 HEADERS += \
+    inc/listen.h \
     inc/widget.h \
     util/StringPoolUtil.hpp \
     util/jsonUtil.hpp \
